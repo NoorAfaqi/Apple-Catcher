@@ -1,0 +1,60 @@
+     1                                  [org 0x100]
+     2 00000000 0700                    lenSnake: dw 7
+     3 00000002 0500                    xPos: dw 5
+     4 00000004 0400                    yPos: dw 4
+     5 00000006 7E7E7E7E7E7E7E          Snake: db '~~~~~~~'
+     6 0000000D E95000                  jmp start
+     7                                  clscreen:
+     8 00000010 B800B8                  	mov ax,0xb800
+     9 00000013 8EC0                    	mov es,ax
+    10 00000015 BF0000                  	mov di,0
+    11                                  nextChar:
+    12 00000018 26C7052007              	mov word[es:di],0x0720
+    13 0000001D 81C70200                	add di,2
+    14 00000021 81FFA00F                	cmp di,4000
+    15 00000025 75F1                    	jne nextChar
+    16 00000027 C3                      	ret
+    17                                  PrintSnake:
+    18 00000028 55                      	push bp
+    19 00000029 89E5                    	mov bp,sp
+    20 0000002B 06                      	push es
+    21 0000002C 50                      	push ax
+    22 0000002D 51                      	push cx
+    23 0000002E 56                      	push si
+    24 0000002F 57                      	push di
+    25 00000030 B800B8                  	mov ax,0xb800
+    26 00000033 8EC0                    	mov es,ax
+    27 00000035 B050                    	mov al,80
+    28 00000037 F66608                  	mul byte[bp+8]
+    29 0000003A 03460A                  	add ax,[bp+10]
+    30 0000003D D1E0                    	shl ax,1
+    31 0000003F 89C7                    	mov di,ax
+    32 00000041 8B7604                  	mov si,[bp+4]
+    33 00000044 8B4E02                  	mov cx,[bp+2]
+    34 00000047 8A6606                  	mov ah,[bp+6]
+    35                                  NextVal:
+    36 0000004A 8A04                    	mov al, [si]
+    37 0000004C 268905                  	mov [es:di], ax
+    38 0000004F 81C70200                	add di, 2
+    39 00000053 81C60100                	add si, 1
+    40 00000057 E2F1                    	loop NextVal
+    41 00000059 5F                      	pop di
+    42 0000005A 5E                      	pop si
+    43 0000005B 59                      	pop cx
+    44 0000005C 58                      	pop ax
+    45 0000005D 07                      	pop es
+    46 0000005E 5D                      	pop bp
+    47 0000005F C3                      	ret
+    48                                  start:
+    49 00000060 E8ADFF                  	call clscreen
+    50 00000063 A1[0200]                	mov ax,[xPos]
+    51 00000066 50                      	push ax
+    52 00000067 A1[0400]                	mov ax,[yPos]
+    53 0000006A 50                      	push ax
+    54 0000006B B80100                  	mov ax,1
+    55 0000006E 50                      	push ax
+    56 0000006F B8[0600]                	mov ax,Snake
+    57 00000072 50                      	push ax
+    58 00000073 E8B2FF                  	call PrintSnake
+    59 00000076 B8004C                  	mov ax,0x4c00
+    60 00000079 CD21                    	int 21h

@@ -1,0 +1,478 @@
+     1                                  [org 0x0100]
+     2 00000000 E9CD03                  jmp start
+     3 00000003 00000000                Dcount: dd 0
+     4 00000007 47616D65204F766572      message: db 'Game Over'
+     5 00000010 73636F72653A            message1: db 'score:'
+     6 00000016 0900                    length: dw 9
+     7 00000018 0000                    foodposition: dw 0
+     8 0000001A 0000                    row: dw 0
+     9 0000001C 0000                    col: dw 0
+    10 0000001E 0000                    score: dw 0
+    11 00000020 2A2A2A2A2A2A2A2A2A-     paddle: db '********************'
+    12 00000029 2A2A2A2A2A2A2A2A2A-
+    13 00000032 2A2A               
+    14 00000034 4170706C6520436174-     gameName: db 'Apple Catcher'
+    15 0000003D 63686572           
+    16 00000041 46323139323733          Madeby1: db 'F219273'
+    17 00000048 46323139333135          Madeby2: db 'F219315'
+    18 0000004F 4D6164652062793A        made: db 'Made by:'
+    19 00000057 557365202277222026-     control1: db 'Use "w" & "s" to play'
+    20 00000060 2022732220746F2070-
+    21 00000069 6C6179             
+    22 0000006C 00                      flag: db 0
+    23 0000006D 2100                    paddlepos: dw 33
+    24                                  
+    25                                  
+    26                                  startGame:
+    27 0000006F E8A200                  call clrscr
+    28 00000072 B82200                  	mov ax, 34
+    29 00000075 50                      	push ax
+    30 00000076 B80C00                  	mov ax, 12
+    31 00000079 50                      	push ax
+    32 0000007A B80E00                  	mov ax, 0x0E
+    33 0000007D 50                      	push ax
+    34 0000007E B8[3400]                	mov ax, gameName
+    35 00000081 50                      	push ax
+    36 00000082 B80D00                  	mov ax,13
+    37 00000085 50                      	push ax
+    38 00000086 E8A900                  	call printstr
+    39 00000089 B80000                  	mov ax, 0
+    40 0000008C 50                      	push ax
+    41 0000008D B81600                  	mov ax, 22
+    42 00000090 50                      	push ax
+    43 00000091 B80E00                  	mov ax, 0x0E
+    44 00000094 50                      	push ax
+    45 00000095 B8[4F00]                	mov ax, made
+    46 00000098 50                      	push ax
+    47 00000099 B80800                  	mov ax,8
+    48 0000009C 50                      	push ax
+    49 0000009D E89200                  	call printstr
+    50 000000A0 B80000                  	mov ax, 0
+    51 000000A3 50                      	push ax
+    52 000000A4 B81700                  	mov ax, 23
+    53 000000A7 50                      	push ax
+    54 000000A8 B80C00                  	mov ax, 0x0C
+    55 000000AB 50                      	push ax
+    56 000000AC B8[4100]                	mov ax, Madeby1
+    57 000000AF 50                      	push ax
+    58 000000B0 B80700                  	mov ax,7
+    59 000000B3 50                      	push ax
+    60 000000B4 E87B00                  	call printstr
+    61 000000B7 B80000                  	mov ax, 0
+    62 000000BA 50                      	push ax
+    63 000000BB B81800                  	mov ax, 24
+    64 000000BE 50                      	push ax
+    65 000000BF B80C00                  	mov ax, 0x0C
+    66 000000C2 50                      	push ax
+    67 000000C3 B8[4800]                	mov ax, Madeby2
+    68 000000C6 50                      	push ax
+    69 000000C7 B80700                  	mov ax,7
+    70 000000CA 50                      	push ax
+    71 000000CB E86400                  	call printstr
+    72 000000CE B81E00                  	mov ax, 30
+    73 000000D1 50                      	push ax
+    74 000000D2 B80D00                  	mov ax, 13
+    75 000000D5 50                      	push ax
+    76 000000D6 B80A00                  	mov ax, 0x0A
+    77 000000D9 50                      	push ax
+    78 000000DA B8[5700]                	mov ax, control1
+    79 000000DD 50                      	push ax
+    80 000000DE B81500                  	mov ax,21
+    81 000000E1 50                      	push ax
+    82 000000E2 E84D00                  	call printstr
+    83 000000E5 C3                      	ret
+    84                                  
+    85                                  
+    86                                  setApplePosition:
+    87 000000E6 50                      	push ax
+    88 000000E7 51                      	push cx
+    89 000000E8 52                      	push dx
+    90                                  l1:
+    91 000000E9 B400                    	MOV AH, 00h
+    92 000000EB CD1A                    	INT 1AH     
+    93 000000ED 89D0                    	mov  ax, dx
+    94 000000EF 31D2                    	xor  dx, dx
+    95 000000F1 B95000                  	mov  cx, 80    
+    96 000000F4 F7F1                    	div  cx 
+    97 000000F6 8916[1C00]              	mov word[col],dx
+    98 000000FA B80000                  	mov ax,0
+    99 000000FD BB5000                  	mov bx,80
+   100 00000100 F7E3                    	mul bx
+   101 00000102 0306[1C00]              	add ax,[col]
+   102 00000106 D1E0                    	shl ax,1
+   103 00000108 3DA00F                  	cmp ax,4000
+   104 0000010B 7FDC                    	jg l1
+   105 0000010D A3[1800]                	mov [foodposition],ax
+   106 00000110 5A                      	pop dx
+   107 00000111 59                      	pop cx
+   108 00000112 58                      	pop ax
+   109 00000113 C3                      	ret
+   110                                  
+   111                                  
+   112                                  clrscr: 
+   113 00000114 06                      	push es
+   114 00000115 50                      	push ax
+   115 00000116 57                      	push di
+   116 00000117 B800B8                  	mov ax, 0xb800
+   117 0000011A 8EC0                    	mov es, ax
+   118 0000011C BF0000                  	mov di, 0
+   119                                  nextloc: 
+   120 0000011F 26C7052007              	mov word [es:di], 0x0720
+   121 00000124 81C70200                	add di, 2
+   122 00000128 81FFA00F                	cmp di, 4000
+   123 0000012C 75F1                    	jne nextloc
+   124 0000012E 5F                      	pop di
+   125 0000012F 58                      	pop ax
+   126 00000130 07                      	pop es
+   127 00000131 C3                      	ret
+   128                                  
+   129                                  
+   130                                  printstr: 
+   131 00000132 55                      	push bp
+   132 00000133 89E5                    	mov bp, sp
+   133 00000135 06                      	push es
+   134 00000136 50                      	push ax
+   135 00000137 51                      	push cx
+   136 00000138 56                      	push si
+   137 00000139 57                      	push di
+   138 0000013A B800B8                  	mov ax, 0xb800
+   139 0000013D 8EC0                    	mov es, ax
+   140 0000013F B050                    	mov al, 80 
+   141 00000141 F6660A                  	mul byte [bp+10]
+   142 00000144 03460C                  	add ax, [bp+12] 
+   143 00000147 D1E0                    	shl ax, 1
+   144 00000149 89C7                    	mov di,ax
+   145 0000014B 8B7606                  	mov si, [bp+6]
+   146 0000014E 8B4E04                  	mov cx, [bp+4] 
+   147 00000151 8A6608                  	mov ah, [bp+8]
+   148                                  nextchar: 
+   149 00000154 8A04                    	mov al, [si] 
+   150 00000156 268905                  	mov [es:di], ax 
+   151 00000159 81C70200                	add di, 2 
+   152 0000015D 81C60100                	add si, 1
+   153 00000161 E2F1                    	loop nextchar
+   154 00000163 5F                      	pop di
+   155 00000164 5E                      	pop si
+   156 00000165 59                      	pop cx
+   157 00000166 58                      	pop ax
+   158 00000167 07                      	pop es
+   159 00000168 5D                      	pop bp
+   160 00000169 C20A00                  	ret 10
+   161                                  
+   162                                  
+   163                                  printfood: 
+   164 0000016C 55                      	push bp
+   165 0000016D 89E5                    	mov bp, sp
+   166 0000016F 06                      	push es
+   167 00000170 50                      	push ax
+   168 00000171 51                      	push cx
+   169 00000172 56                      	push si
+   170 00000173 57                      	push di
+   171 00000174 53                      	push bx
+   172 00000175 52                      	push dx
+   173 00000176 B800B8                  	mov ax, 0xb800
+   174 00000179 8EC0                    	mov es, ax 
+   175 0000017B 8B4606                  	mov ax,[bp+6]
+   176 0000017E 89C7                    	mov di,ax
+   177 00000180 BA000F                  	mov dx,3840
+   178 00000183 39D0                    	cmp ax,dx
+   179 00000185 7C1B                    	jl normalprint
+   180 00000187 268B1D                  	mov bx,word[es:di]
+   181 0000018A 81FB2A0E                	cmp bx,0x0E2A
+   182 0000018E 7507                    	jne continue
+   183 00000190 FF06[1E00]              	inc word[score]
+   184 00000194 E91300                  	jmp ending
+   185                                  continue:
+   186 00000197 E8A201                  	call endgame
+   187 0000019A C606[6C00]01            	mov byte[flag],1
+   188 0000019F E90800                  	jmp ending
+   189                                  normalprint:
+   190 000001A2 8A6604                  	mov ah, [bp+4] 
+   191 000001A5 B003                    	mov al, 0x03 
+   192 000001A7 268905                  	mov [es:di], ax
+   193                                  ending:
+   194 000001AA 5A                      	pop dx
+   195 000001AB 5B                      	pop bx
+   196 000001AC 5F                      	pop di
+   197 000001AD 5E                      	pop si
+   198 000001AE 59                      	pop cx
+   199 000001AF 58                      	pop ax
+   200 000001B0 07                      	pop es
+   201 000001B1 5D                      	pop bp
+   202 000001B2 C20400                  	ret 4
+   203                                  
+   204                                  
+   205                                  DelayS:
+   206 000001B5 55                      	push bp
+   207 000001B6 89E5                    	mov bp,sp
+   208 000001B8 51                      	push cx
+   209 000001B9 8B4E04                  	mov cx,[bp+4]
+   210                                  DDlay:
+   211 000001BC 66C706[0300]90D003-     	mov dword[Dcount],250000
+   212 000001C4 00                 
+   213 000001C5 B401                    	mov ah,0x01
+   214 000001C7 CD16                    	int 0x16
+   215 000001C9 7471                    	jz delSec
+   216 000001CB B400                    	mov ah,0x00
+   217 000001CD CD16                    	int 0x16
+   218 000001CF 3C01                    	cmp al,0x01
+   219 000001D1 7404                    	je leftkey1
+   220 000001D3 3C64                    	cmp al,0x64
+   221 000001D5 7434                    	je rightkey1
+   222                                  leftkey1:
+   223 000001D7 B800B8                  	mov ax, 0xb800
+   224 000001DA 8EC0                    	mov es, ax 
+   225 000001DC A1[6D00]                	mov ax,[paddlepos]
+   226 000001DF 051400                  	add ax,20
+   227 000001E2 D1E0                    	shl ax,1
+   228 000001E4 05000F                  	add ax,3840
+   229 000001E7 89C7                    	mov di,ax
+   230 000001E9 B82007                  	mov ax,0X0720
+   231 000001EC 268905                  	mov [es:di], ax
+   232 000001EF FF0E[6D00]              	dec word[paddlepos]
+   233 000001F3 B800B8                  	mov ax, 0xb800
+   234 000001F6 8EC0                    	mov es, ax 
+   235 000001F8 A1[6D00]                	mov ax,[paddlepos]
+   236 000001FB D1E0                    	shl ax,1
+   237 000001FD 05000F                  	add ax,3840
+   238 00000200 89C7                    	mov di,ax
+   239 00000202 B82A0E                  	mov ax,0X0E2A
+   240 00000205 268905                  	mov [es:di], ax
+   241 00000208 E93100                  	jmp delSec
+   242                                  rightkey1:
+   243 0000020B B800B8                  	mov ax, 0xb800
+   244 0000020E 8EC0                    	mov es, ax 
+   245 00000210 A1[6D00]                	mov ax,[paddlepos]
+   246 00000213 D1E0                    	shl ax,1
+   247 00000215 05000F                  	add ax,3840
+   248 00000218 89C7                    	mov di,ax
+   249 0000021A B82007                  	mov ax,0X0720
+   250 0000021D 268905                  	mov [es:di], ax
+   251 00000220 FF06[6D00]              	inc word[paddlepos]
+   252 00000224 B800B8                  	mov ax, 0xb800
+   253 00000227 8EC0                    	mov es, ax 
+   254 00000229 A1[6D00]                	mov ax,[paddlepos]
+   255 0000022C 051400                  	add ax,20
+   256 0000022F D1E0                    	shl ax,1
+   257 00000231 05000F                  	add ax,3840
+   258 00000234 89C7                    	mov di,ax
+   259 00000236 B82A0E                  	mov ax,0X0E2A
+   260 00000239 268905                  	mov [es:di], ax
+   261                                  delSec:
+   262 0000023C 66FF0E[0300]            	dec dword[Dcount]
+   263 00000241 66813E[0300]000000-     	cmp dword[Dcount],0
+   264 00000249 00                 
+   265 0000024A 75F0                    	jne delSec
+   266 0000024C 49                      	dec cx
+   267 0000024D 0F856BFF                	jnz DDlay
+   268 00000251 59                      	pop cx
+   269 00000252 5D                      	pop bp
+   270 00000253 C20200                  	ret 2
+   271                                  
+   272                                  
+   273                                  fallingfood:
+   274 00000256 50                      	push ax
+   275 00000257 53                      	push bx
+   276 00000258 51                      	push cx
+   277 00000259 B91900                  	mov cx,25
+   278 0000025C E887FE                  	call setApplePosition
+   279 0000025F BB0000                  	mov bx,0
+   280                                  lll:
+   281 00000262 E8AFFE                  	call clrscr
+   282 00000265 E81101                  	call printpaddle
+   283 00000268 B80000                  	mov ax, 0
+   284 0000026B 50                      	push ax
+   285 0000026C B80000                  	mov ax, 0
+   286 0000026F 50                      	push ax
+   287 00000270 B80A00                  	mov ax, 0x0A
+   288 00000273 50                      	push ax
+   289 00000274 B8[1000]                	mov ax, message1
+   290 00000277 50                      	push ax
+   291 00000278 B80600                  	mov ax,6
+   292 0000027B 50                      	push ax
+   293 0000027C E8B3FE                  	call printstr
+   294 0000027F B81000                  	mov ax,16
+   295 00000282 50                      	push ax
+   296 00000283 A1[1E00]                	mov ax,[score]
+   297 00000286 50                      	push ax
+   298 00000287 E80701                  	call printnum
+   299 0000028A B401                    	mov ah,0x01
+   300 0000028C CD16                    	int 0x16
+   301 0000028E 7471                    	jz continue2
+   302 00000290 B400                    	mov ah,0x00
+   303 00000292 CD16                    	int 0x16
+   304 00000294 3C01                    	cmp al,0x01
+   305 00000296 7404                    	je leftkey
+   306 00000298 3C64                    	cmp al,0x64
+   307 0000029A 7434                    	je rightkey
+   308                                  leftkey:
+   309 0000029C B800B8                  	mov ax, 0xb800
+   310 0000029F 8EC0                    	mov es, ax 
+   311 000002A1 A1[6D00]                	mov ax,[paddlepos]
+   312 000002A4 051400                  	add ax,20
+   313 000002A7 D1E0                    	shl ax,1
+   314 000002A9 05000F                  	add ax,3840
+   315 000002AC 89C7                    	mov di,ax
+   316 000002AE B82007                  	mov ax,0X0720
+   317 000002B1 268905                  	mov [es:di], ax
+   318 000002B4 FF0E[6D00]              	dec word[paddlepos]
+   319 000002B8 B800B8                  	mov ax, 0xb800
+   320 000002BB 8EC0                    	mov es, ax 
+   321 000002BD A1[6D00]                	mov ax,[paddlepos]
+   322 000002C0 D1E0                    	shl ax,1
+   323 000002C2 05000F                  	add ax,3840
+   324 000002C5 89C7                    	mov di,ax
+   325 000002C7 B82A0E                  	mov ax,0X0E2A
+   326 000002CA 268905                  	mov [es:di], ax
+   327 000002CD E93100                  	jmp continue2
+   328                                  rightkey:
+   329 000002D0 B800B8                  	mov ax, 0xb800
+   330 000002D3 8EC0                    	mov es, ax 
+   331 000002D5 A1[6D00]                	mov ax,[paddlepos]
+   332 000002D8 D1E0                    	shl ax,1
+   333 000002DA 05000F                  	add ax,3840
+   334 000002DD 89C7                    	mov di,ax
+   335 000002DF B82007                  	mov ax,0X0720
+   336 000002E2 268905                  	mov [es:di], ax
+   337 000002E5 FF06[6D00]              	inc word[paddlepos]
+   338 000002E9 B800B8                  	mov ax, 0xb800
+   339 000002EC 8EC0                    	mov es, ax 
+   340 000002EE A1[6D00]                	mov ax,[paddlepos]
+   341 000002F1 051400                  	add ax,20
+   342 000002F4 D1E0                    	shl ax,1
+   343 000002F6 05000F                  	add ax,3840
+   344 000002F9 89C7                    	mov di,ax
+   345 000002FB B82A0E                  	mov ax,0X0E2A
+   346 000002FE 268905                  	mov [es:di], ax
+   347                                  continue2:
+   348 00000301 A1[1800]                	mov ax,[foodposition]
+   349 00000304 01D8                    	add ax,bx
+   350 00000306 50                      	push ax
+   351 00000307 81F90800                	cmp cx,8
+   352 0000030B 7E14                    	jle colour2
+   353 0000030D 81F91200                	cmp cx,18
+   354 00000311 7E07                    	jle colour1
+   355 00000313 B80A00                  	mov ax,0x0A
+   356 00000316 50                      	push ax
+   357 00000317 E90B00                  	jmp skipcolour
+   358                                  colour1:	
+   359 0000031A B80B00                  	mov ax,0x0B
+   360 0000031D 50                      	push ax
+   361 0000031E E90400                  	jmp skipcolour
+   362                                  colour2:
+   363 00000321 B80C00                  	mov ax,0x0C
+   364 00000324 50                      	push ax
+   365                                  skipcolour:
+   366 00000325 E844FE                  	call printfood
+   367 00000328 B80100                  	mov ax,1
+   368 0000032B 50                      	push ax
+   369 0000032C E886FE                  	call DelayS
+   370 0000032F 81C3A000                	add bx,160
+   371 00000333 49                      	dec cx
+   372 00000334 0F852AFF                	jnz lll
+   373 00000338 59                      	pop cx
+   374 00000339 5B                      	pop bx
+   375 0000033A 58                      	pop ax
+   376 0000033B C3                      	ret
+   377                                  
+   378                                  
+   379                                  endgame: 
+   380 0000033C E8D5FD                  	call clrscr
+   381 0000033F B82200                  	mov ax, 34
+   382 00000342 50                      	push ax
+   383 00000343 B80C00                  	mov ax, 12
+   384 00000346 50                      	push ax
+   385 00000347 B80E00                  	mov ax, 0x0E
+   386 0000034A 50                      	push ax
+   387 0000034B B8[0700]                	mov ax, message
+   388 0000034E 50                      	push ax 
+   389 0000034F FF36[1600]              	push word [length]
+   390 00000353 E8DCFD                  	call printstr
+   391 00000356 B82200                  	mov ax, 34
+   392 00000359 50                      	push ax
+   393 0000035A B80D00                  	mov ax, 13
+   394 0000035D 50                      	push ax
+   395 0000035E B80A00                  	mov ax, 0x0A
+   396 00000361 50                      	push ax
+   397 00000362 B8[1000]                	mov ax, message1
+   398 00000365 50                      	push ax
+   399 00000366 B80600                  	mov ax,6
+   400 00000369 50                      	push ax
+   401 0000036A E8C5FD                  	call printstr
+   402 0000036D B87208                  	mov ax,2162
+   403 00000370 50                      	push ax
+   404 00000371 A1[1E00]                	mov ax,[score]
+   405 00000374 50                      	push ax
+   406 00000375 E81900                  	call printnum
+   407 00000378 C3                      	ret
+   408                                  
+   409                                  
+   410                                  printpaddle:
+   411 00000379 A1[6D00]                	mov ax, [paddlepos]
+   412 0000037C 50                      	push ax
+   413 0000037D B81800                  	mov ax, 24
+   414 00000380 50                      	push ax
+   415 00000381 B80E00                  	mov ax, 0x0E
+   416 00000384 50                      	push ax
+   417 00000385 B8[2000]                	mov ax, paddle
+   418 00000388 50                      	push ax
+   419 00000389 B81400                  	mov ax,20
+   420 0000038C 50                      	push ax
+   421 0000038D E8A2FD                  	call printstr
+   422 00000390 C3                      	ret
+   423                                  
+   424                                  
+   425                                  printnum: 
+   426 00000391 55                      	push bp
+   427 00000392 89E5                    	mov bp, sp
+   428 00000394 06                      	push es
+   429 00000395 50                      	push ax
+   430 00000396 53                      	push bx
+   431 00000397 51                      	push cx
+   432 00000398 52                      	push dx
+   433 00000399 57                      	push di
+   434 0000039A B800B8                  	mov ax, 0xb800
+   435 0000039D 8EC0                    	mov es, ax 
+   436 0000039F 8B4604                  	mov ax, [bp+4] 
+   437 000003A2 BB0A00                  	mov bx, 10 
+   438 000003A5 B90000                  	mov cx, 0 
+   439                                  nextdigit: 
+   440 000003A8 BA0000                  	mov dx, 0 
+   441 000003AB F7F3                    	div bx
+   442 000003AD 80C230                  	add dl, 0x30 
+   443 000003B0 52                      	push dx 
+   444 000003B1 41                      	inc cx 
+   445 000003B2 3D0000                  	cmp ax, 0 
+   446 000003B5 75F1                    	jnz nextdigit 
+   447 000003B7 8B7E06                  	mov di, [bp+6]
+   448                                  nextpos:
+   449 000003BA 5A                      	pop dx 
+   450 000003BB B60A                    	mov dh, 0x0A 
+   451 000003BD 268915                  	mov [es:di], dx 
+   452 000003C0 81C70200                	add di, 2 
+   453 000003C4 E2F4                    	loop nextpos 
+   454 000003C6 5F                      	pop di
+   455 000003C7 5A                      	pop dx
+   456 000003C8 59                      	pop cx
+   457 000003C9 5B                      	pop bx
+   458 000003CA 58                      	pop ax
+   459 000003CB 07                      	pop es
+   460 000003CC 5D                      	pop bp
+   461 000003CD C20400                  	ret 4
+   462                                  
+   463                                  
+   464                                  
+   465                                  
+   466                                  
+   467                                  start:
+   468 000003D0 E89CFC                  	call startGame
+   469 000003D3 B80F00                  	mov ax,15
+   470 000003D6 50                      	push ax
+   471 000003D7 E8DBFD                  	call DelayS
+   472                                  begin:
+   473 000003DA E879FE                  	call fallingfood
+   474 000003DD 803E[6C00]00            	cmp byte[flag],0
+   475 000003E2 74F6                    	je begin
+   476                                  	
+   477 000003E4 B8004C                  	mov ax, 0x4c00
+   478 000003E7 CD21                    	int 0x21
